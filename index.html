@@ -2,27 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ticketing System</title>
-    <style>
-        .ticket { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
-    </style>
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
-<body>
-    <h1>Ticketing System</h1>
+<body class="bg-light">
+    <div class="container my-5">
+        <h1 class="text-center mb-4">Ticketing System</h1>
 
-    <!-- Create Ticket Form -->
-    <h2>Create Ticket</h2>
-    <form id="ticketForm">
-        <input type="text" id="title" placeholder="Ticket Title" required><br>
-        <textarea id="description" placeholder="Description" required></textarea><br>
-        <input type="text" id="assignedUser" placeholder="Assigned User" required><br>
-        <button type="submit">Create Ticket</button>
-    </form>
+        <!-- Create Ticket Form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2 class="card-title">Create Ticket</h2>
+                <form id="ticketForm">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="title" placeholder="Ticket Title" required>
+                    </div>
+                    <div class="mb-3">
+                        <textarea class="form-control" id="description" placeholder="Description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="assignedUser" placeholder="Assigned User" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Ticket</button>
+                </form>
+            </div>
+        </div>
 
-    <!-- Tickets Display -->
-    <h2>Tickets</h2>
-    <div id="ticketList"></div>
+        <!-- Tickets Display -->
+        <h2>Tickets</h2>
+        <div id="ticketList" class="row"></div>
 
+        <!-- User Case Query -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h2 class="card-title">User Case Summary</h2>
+                <table class="table table-striped" id="userSummary">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Number of Tickets</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3 JS (with Popper.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>
         // Load tickets from Local Storage or initialize empty array
         let tickets = JSON.parse(localStorage.getItem('tickets')) || [];
@@ -37,20 +67,29 @@
             const ticketList = document.getElementById('ticketList');
             ticketList.innerHTML = '';
             tickets.forEach((ticket, index) => {
-                const ticketDiv = document.createElement('div');
-                ticketDiv.className = 'ticket';
-                ticketDiv.innerHTML = `
-                    <h3>${ticket.title}</h3>
-                    <p>${ticket.description}</p>
-                    <p>Assigned to: ${ticket.assignedUser}</p>
-                    <p>Activities: ${ticket.activities.join(', ') || 'None'}</p>
-                    <input type="text" id="activity-${index}" placeholder="Add Activity">
-                    <button onclick="addActivity(${index})">Add</button>
-                    <input type="text" id="transfer-${index}" placeholder="New User">
-                    <button onclick="transferTicket(${index})">Transfer</button>
+                const ticketCard = document.createElement('div');
+                ticketCard.className = 'col-md-4 mb-3';
+                ticketCard.innerHTML = `
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">${ticket.title}</h5>
+                            <p class="card-text">${ticket.description}</p>
+                            <p class="card-text"><strong>Assigned to:</strong> ${ticket.assignedUser}</p>
+                            <p class="card-text"><strong>Activities:</strong> ${ticket.activities.join(', ') || 'None'}</p>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" id="activity-${index}" placeholder="Add Activity">
+                                <button class="btn btn-outline-secondary" onclick="addActivity(${index})">Add</button>
+                            </div>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="transfer-${index}" placeholder="New User">
+                                <button class="btn btn-outline-secondary" onclick="transferTicket(${index})">Transfer</button>
+                            </div>
+                        </div>
+                    </div>
                 `;
-                ticketList.appendChild(ticketDiv);
+                ticketList.appendChild(ticketCard);
             });
+            renderUserSummary();
         }
 
         // Create a new ticket
@@ -87,6 +126,21 @@
                 tickets[index].assignedUser = newUser;
                 saveTickets();
                 renderTickets();
+            }
+        }
+
+        // Render user case summary
+        function renderUserSummary() {
+            const userCounts = tickets.reduce((acc, ticket) => {
+                acc[ticket.assignedUser] = (acc[ticket.assignedUser] || 0) + 1;
+                return acc;
+            }, {});
+            const tbody = document.querySelector('#userSummary tbody');
+            tbody.innerHTML = '';
+            for (const [user, count] of Object.entries(userCounts)) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${user}</td><td>${count}</td>`;
+                tbody.appendChild(row);
             }
         }
 
