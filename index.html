@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ticketing System</title>
+    <style>
+        .ticket { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Ticketing System</h1>
+
+    <!-- Create Ticket Form -->
+    <h2>Create Ticket</h2>
+    <form id="ticketForm">
+        <input type="text" id="title" placeholder="Ticket Title" required><br>
+        <textarea id="description" placeholder="Description" required></textarea><br>
+        <input type="text" id="assignedUser" placeholder="Assigned User" required><br>
+        <button type="submit">Create Ticket</button>
+    </form>
+
+    <!-- Tickets Display -->
+    <h2>Tickets</h2>
+    <div id="ticketList"></div>
+
+    <script>
+        // Load tickets from Local Storage or initialize empty array
+        let tickets = JSON.parse(localStorage.getItem('tickets')) || [];
+
+        // Function to save tickets to Local Storage
+        function saveTickets() {
+            localStorage.setItem('tickets', JSON.stringify(tickets));
+        }
+
+        // Function to render tickets
+        function renderTickets() {
+            const ticketList = document.getElementById('ticketList');
+            ticketList.innerHTML = '';
+            tickets.forEach((ticket, index) => {
+                const ticketDiv = document.createElement('div');
+                ticketDiv.className = 'ticket';
+                ticketDiv.innerHTML = `
+                    <h3>${ticket.title}</h3>
+                    <p>${ticket.description}</p>
+                    <p>Assigned to: ${ticket.assignedUser}</p>
+                    <p>Activities: ${ticket.activities.join(', ') || 'None'}</p>
+                    <input type="text" id="activity-${index}" placeholder="Add Activity">
+                    <button onclick="addActivity(${index})">Add</button>
+                    <input type="text" id="transfer-${index}" placeholder="New User">
+                    <button onclick="transferTicket(${index})">Transfer</button>
+                `;
+                ticketList.appendChild(ticketDiv);
+            });
+        }
+
+        // Create a new ticket
+        document.getElementById('ticketForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const assignedUser = document.getElementById('assignedUser').value;
+            tickets.push({
+                title,
+                description,
+                assignedUser,
+                activities: []
+            });
+            saveTickets();
+            renderTickets();
+            e.target.reset();
+        });
+
+        // Add activity to a ticket
+        function addActivity(index) {
+            const activity = document.getElementById(`activity-${index}`).value;
+            if (activity) {
+                tickets[index].activities.push(activity);
+                saveTickets();
+                renderTickets();
+            }
+        }
+
+        // Transfer ticket to another user
+        function transferTicket(index) {
+            const newUser = document.getElementById(`transfer-${index}`).value;
+            if (newUser) {
+                tickets[index].assignedUser = newUser;
+                saveTickets();
+                renderTickets();
+            }
+        }
+
+        // Initial render
+        renderTickets();
+    </script>
+</body>
+</html>
